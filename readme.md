@@ -1,6 +1,6 @@
-# Rofi-NetWork-manager
+# Wofi-NetWork-manager
 
-A Network manager for Tiling Window Managers [i3/bspwm/awesome/etc] or not.
+A Network manager for Wayland/wlroots Tiling Window Managers [sway/wayfire/hyperland/etc] or not.
 Inspired from [rofi-wifi-menu](https://github.com/zbaylin/rofi-wifi-menu).
 
 ## Table of Contents
@@ -16,7 +16,7 @@ Inspired from [rofi-wifi-menu](https://github.com/zbaylin/rofi-wifi-menu).
 ### Requirements
 
 - **NetworkManager** (_nmcli_)
-- [**rofi**](https://github.com/davatorium/rofi)
+- [**wofi**](https://hg.sr.ht/~scoopta/wofi)
 - **Notification Daemon** (_Optional_) (_For notifications_)
   - [notify-osd](https://launchpad.net/notify-osd)
   - [dunst](https://github.com/dunst-project/dunst)
@@ -47,7 +47,7 @@ Inspired from [rofi-wifi-menu](https://github.com/zbaylin/rofi-wifi-menu).
 
 ### Config
 
-**rofi-network-manager.conf**
+**wofi-network-manager.conf**
 
 ```
 # Location
@@ -75,7 +75,7 @@ WIDTH_FIX_MAIN=1
 WIDTH_FIX_STATUS=10
 ```
 
-**rofi-network-manager.rasi**
+**wofi-network-manager.css**
 
 ```
 font: "DejaVu Sans Mono 9";       //Font
@@ -90,9 +90,9 @@ background-selection:#e34039;     //Selection_bg
 ### Download-Usage
 
 ```
-git clone https://github.com/P3rf/rofi-network-manager.git
-cd rofi-network-manager
-bash "./rofi-network-manager.sh"
+git clone https://github.com/sadikeey/wofi-network-manager.git
+cd wofi-network-manager
+bash "./wofi-network-manager.sh"
 ```
 
 ### Examples-Usage
@@ -108,12 +108,12 @@ unknown-as-up = true
 format-connected-background = ${colors.background}
 format-connected-foreground = ${colors.foreground}
 format-connected-padding = 1
-format-connected = %{A1:$HOME/.../rofi-network-manager/rofi-network-manager.sh:}<ramp-signal> <label-connected>%{A}
+format-connected = %{A1:$HOME/.../wofi-network-manager/wofi-network-manager.sh:}<ramp-signal> <label-connected>%{A}
 label-connected = %essid%/%local_ip%
 format-disconnected-background = ${colors.background}
 format-disconnected-foreground = ${colors.foreground}
 format-disconnected-padding = 1
-format-disconnected = %{A1:$HOME/.../rofi-network-manager/rofi-network-manager.sh:}<label-disconnected>%{A}
+format-disconnected = %{A1:$HOME/.../wofi-network-manager/wofi-network-manager.sh:}<label-disconnected>%{A}
 label-disconnected =""
 ramp-signal-0 = "󰤯"
 ramp-signal-1 = "󰤟"
@@ -131,12 +131,12 @@ interval = 3.0
 format-connected-background = ${colors.background}
 format-connected-foreground = ${colors.foreground}
 format-connected-padding = 1
-format-connected = %{A1:$HOME/.../rofi-network-manager/rofi-network-manager.sh:}<label-connected>%{A}
+format-connected = %{A1:$HOME/.../wofi-network-manager/wofi-network-manager.sh:}<label-connected>%{A}
 label-connected =  %local_ip%
 format-disconnected-background = ${colors.background}
 format-disconnected-foreground = ${colors.foreground-alt}
 format-disconnected-padding = 1
-format-disconnected = %{A1:$HOME/.../rofi-network-manager/rofi-network-manager.sh:}<label-disconnected>%{A}
+format-disconnected = %{A1:$HOME/.../wofi-network-manager/wofi-network-manager.sh:}<label-disconnected>%{A}
 label-disconnected ="󰌺"
 ```
 

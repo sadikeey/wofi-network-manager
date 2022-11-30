@@ -15,9 +15,10 @@ WIRELESS_INTERFACES_PRODUCT=()
 WLAN_INT=0
 WIRED_INTERFACES=($(nmcli device | awk '$2=="ethernet" {print $1}'))
 WIRED_INTERFACES_PRODUCT=()
+
 function initialization() {
-	source "$DIR/rofi-network-manager.conf" || source "${XDG_CONFIG_HOME:-$HOME/.config}/rofi/rofi-network-manager.conf"
-	{ [[ -f "$DIR/rofi-network-manager.rasi" ]] && RASI_DIR="$DIR/rofi-network-manager.rasi"; } || { [[ -f "${XDG_CONFIG_HOME:-$HOME/.config}/rofi/rofi-network-manager.rasi" ]] && RASI_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/rofi/rofi-network-manager.rasi"; } || exit
+	source "$DIR/wofi-network-manager.conf" || source "${XDG_CONFIG_HOME:-$HOME/.config}/wofi/wofi-network-manager.conf"
+	{ [[ -s "$DIR/wofi-network-manager.css" ]] && RASI_DIR="$DIR/wofi-network-manager.css"; } || { [[ -s "${XDG_CONFIG_HOME:-$HOME/.config}/wofi/wofi-network-manager.css" ]] && RASI_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/wofi/wofi-network-manager.css"; } || exit
 	for i in "${WIRELESS_INTERFACES[@]}"; do WIRELESS_INTERFACES_PRODUCT+=("$(nmcli -f general.product device show "$i" | awk '{print $2}')"); done
 	for i in "${WIRED_INTERFACES[@]}"; do WIRED_INTERFACES_PRODUCT+=("$(nmcli -f general.product device show "$i" | awk '{print $2}')"); done
 	wireless_interface_state && ethernet_interface_state
@@ -44,27 +45,27 @@ function ethernet_interface_state() {
 		OPTIONS="${OPTIONS}${WIRED_SWITCH}\n"
 	}
 }
-function rofi_menu() {
+function wofi_menu() {
 	{ [[ ${#WIRELESS_INTERFACES[@]} -gt "1" ]] && OPTIONS="${OPTIONS}~Change Wifi Interface\n~More Options"; } || { OPTIONS="${OPTIONS}~More Options"; }
 	{ [[ "$WIRED_CON_STATE" == "connected" ]] && PROMPT="${WIRED_INTERFACES_PRODUCT}[$WIRED_INTERFACES]"; } || PROMPT="${WIRELESS_INTERFACES_PRODUCT[WLAN_INT]}[${WIRELESS_INTERFACES[WLAN_INT]}]"
-	SELECTION=$(echo -e "$OPTIONS" | rofi_cmd "$OPTIONS" $WIDTH_FIX_MAIN "-a 0")
+	SELECTION=$(echo -e "$OPTIONS" | wofi_cmd "$OPTIONS" $WIDTH_FIX_MAIN "-a 0")
 	SSID=$(echo "$SELECTION" | sed "s/\s\{2,\}/\|/g" | awk -F "|" '{print $1}')
 	selection_action
 }
-function rofi_cmd() {
+function wofi_cmd() {
 	{ [[ -n "${1}" ]] && WIDTH=$(echo -e "$1" | awk '{print length}' | sort -n | tail -1) && ((WIDTH += $2)) && ((WIDTH = WIDTH / 2)); } || { ((WIDTH = $2 / 2)); }
-	rofi -dmenu -i -location "$LOCATION" -yoffset "$Y_AXIS" -xoffset "$X_AXIS" $3 -theme "$RASI_DIR" -theme-str 'window{width: '$WIDTH'em;}textbox-prompt-colon{str:"'$PROMPT':";}'"$4"''
+	wofi -dmenu -i --normal-window=false -location "$LOCATION" -yoffset "$Y_AXIS" -xoffset "$X_AXIS" $3 -theme "$RASI_DIR" -theme-str 'window{width: '$WIDTH'em;}textbox-prompt-colon{str:"'$PROMPT':";}'"$4"''
 }
 function change_wireless_interface() {
 	{ [[ ${#WIRELESS_INTERFACES[@]} -eq "2" ]] && { [[ $WLAN_INT -eq "0" ]] && WLAN_INT=1 || WLAN_INT=0; }; } || {
 		LIST_WLAN_INT=""
 		for i in "${!WIRELESS_INTERFACES[@]}"; do LIST_WLAN_INT=("${LIST_WLAN_INT[@]}${WIRELESS_INTERFACES_PRODUCT[$i]}[${WIRELESS_INTERFACES[$i]}]\n"); done
 		LIST_WLAN_INT[-1]=${LIST_WLAN_INT[-1]::-2}
-		CHANGE_WLAN_INT=$(echo -e "${LIST_WLAN_INT[@]}" | rofi_cmd "${LIST_WLAN_INT[@]}" $WIDTH_FIX_STATUS)
+		CHANGE_WLAN_INT=$(echo -e "${LIST_WLAN_INT[@]}" | wofi_cmd "${LIST_WLAN_INT[@]}" $WIDTH_FIX_STATUS)
 		for i in "${!WIRELESS_INTERFACES[@]}"; do [[ $CHANGE_WLAN_INT == "${WIRELESS_INTERFACES_PRODUCT[$i]}[${WIRELESS_INTERFACES[$i]}]" ]] && WLAN_INT=$i && break; done
 	}
 	wireless_interface_state && ethernet_interface_state
-	rofi_menu
+	wofi_menu
 }
 function scan() {
 	[[ "$WIFI_CON_STATE" =~ "unavailable" ]] && change_wifi_state "Wi-Fi" "Enabling Wi-Fi connection" "on" && sleep 2
@@ -72,7 +73,7 @@ function scan() {
 	WIFI_LIST=$(nmcli --fields IN-USE,SSID,SECURITY,BARS device wifi list ifname "${WIRELESS_INTERFACES[WLAN_INT]}" --rescan yes | awk -F'  +' '{ if (!seen[$2]++) print}' | sed "s/^IN-USE\s//g" | sed "/*/d" | sed "s/^ *//" | awk '$1!="--" {print}')
 	wireless_interface_state && ethernet_interface_state
 	notification "-t 1 Wifi" "Please Wait Scanning"
-	rofi_menu
+	wofi_menu
 }
 function change_wifi_state() {
 	notification "$1" "$2"
@@ -100,10 +101,10 @@ function connect() {
 	{ [[ $(nmcli dev wifi con "$1" password "$2" ifname "${WIRELESS_INTERFACES[WLAN_INT]}" | grep -c "successfully activated") -eq "1" ]] && notification "Connection_Established" "You're now connected to Wi-Fi network '$1'"; } || notification "Connection_Error" "Connection can not be established"
 }
 function enter_passwword() {
-	PROMPT="Enter_Password" && PASS=$(echo "$PASSWORD_ENTER" | rofi_cmd "$PASSWORD_ENTER" 4 "-password")
+	PROMPT="Enter_Password" && PASS=$(echo "$PASSWORD_ENTER" | wofi_cmd "$PASSWORD_ENTER" 4 "-password")
 }
 function enter_ssid() {
-	PROMPT="Enter_SSID" && SSID=$(rofi_cmd "" 40)
+	PROMPT="Enter_SSID" && SSID=$(wofi_cmd "" 40)
 }
 function stored_connection() {
 	check_wifi_connected
@@ -145,30 +146,30 @@ function status() {
 	[[ ${#WIRELESS_INTERFACES[@]} -ne "0" ]] && WLAN_STATUS="$(interface_status WIRELESS_INTERFACES WIRELESS_INTERFACES_PRODUCT)" && { [[ -n ${OPTIONS} ]] && OPTIONS="${OPTIONS}\n${WLAN_STATUS}" || OPTIONS="${OPTIONS}${WLAN_STATUS}"; }
 	ACTIVE_VPN=$(nmcli -g NAME,TYPE con show --active | awk '/:vpn/' | sed 's/:vpn.*//g')
 	[[ -n $ACTIVE_VPN ]] && OPTIONS="${OPTIONS}\n${ACTIVE_VPN}[VPN]: $(nmcli -g ip4.address con show "${ACTIVE_VPN}" | awk -F '[:/]' '{print $1}')"
-	echo -e "$OPTIONS" | rofi_cmd "$OPTIONS" $WIDTH_FIX_STATUS "" "mainbox{children:[listview];}"
+	echo -e "$OPTIONS" | wofi_cmd "$OPTIONS" $WIDTH_FIX_STATUS "" "mainbox{children:[listview];}"
 }
 function share_pass() {
 	SSID=$(nmcli dev wifi show-password | grep -oP '(?<=SSID: ).*' | head -1)
 	PASSWORD=$(nmcli dev wifi show-password | grep -oP '(?<=Password: ).*' | head -1)
 	OPTIONS="SSID: ${SSID}\nPassword: ${PASSWORD}"
 	[[ -x "$(command -v qrencode)" ]] && OPTIONS="${OPTIONS}\n~QrCode"
-	SELECTION=$(echo -e "$OPTIONS" | rofi_cmd "$OPTIONS" $WIDTH_FIX_STATUS "-a -1" "mainbox{children:[listview];}")
+	SELECTION=$(echo -e "$OPTIONS" | wofi_cmd "$OPTIONS" $WIDTH_FIX_STATUS "-a -1" "mainbox{children:[listview];}")
 	selection_action
 }
 function gen_qrcode() {
 	DIRECTIONS=("Center" "Northwest" "North" "Northeast" "East" "Southeast" "South" "Southwest" "West")
 	[[ -e $QRCODE_DIR$SSID.png ]] || qrencode -t png -o $QRCODE_DIR$SSID.png -l H -s 25 -m 2 --dpi=192 "WIFI:S:""$SSID"";T:""$(nmcli dev wifi show-password | grep -oP '(?<=Security: ).*' | head -1)"";P:""$PASSWORD"";;"
-	rofi_cmd "" "0" "" "entry{enabled:false;}window{location:"${DIRECTIONS[QRCODE_LOCATION]}";border-radius:6mm;padding:1mm;width:100mm;height:100mm;
+	wofi_cmd "" "0" "" "entry{enabled:false;}window{location:"${DIRECTIONS[QRCODE_LOCATION]}";border-radius:6mm;padding:1mm;width:100mm;height:100mm;
 	background-image:url(\"$QRCODE_DIR$SSID.png\",both);}"
 }
 function manual_hidden() {
-	OPTIONS="~Manual\n~Hidden" && SELECTION=$(echo -e "$OPTIONS" | rofi_cmd "$OPTIONS" $WIDTH_FIX_STATUS "" "mainbox{children:[listview];}")
+	OPTIONS="~Manual\n~Hidden" && SELECTION=$(echo -e "$OPTIONS" | wofi_cmd "$OPTIONS" $WIDTH_FIX_STATUS "" "mainbox{children:[listview];}")
 	selection_action
 }
 function vpn() {
 	ACTIVE_VPN=$(nmcli -g NAME,TYPE con show --active | awk '/:vpn/' | sed 's/:vpn.*//g')
 	[[ $ACTIVE_VPN ]] && OPTIONS="~Deactive $ACTIVE_VPN" || OPTIONS="$(nmcli -g NAME,TYPE connection | awk '/:vpn/' | sed 's/:vpn.*//g')"
-	VPN_ACTION=$(echo -e "$OPTIONS" | rofi_cmd "$OPTIONS" "$WIDTH_FIX_STATUS" "" "mainbox {children:[listview];}")
+	VPN_ACTION=$(echo -e "$OPTIONS" | wofi_cmd "$OPTIONS" "$WIDTH_FIX_STATUS" "" "mainbox {children:[listview];}")
 	[[ -n "$VPN_ACTION" ]] && { { [[ "$VPN_ACTION" =~ "~Deactive" ]] && nmcli connection down "$ACTIVE_VPN" && notification "VPN_Deactivated" "$ACTIVE_VPN"; } || {
 		notification "-t 0 Activating_VPN" "$VPN_ACTION" && VPN_OUTPUT=$(nmcli connection up "$VPN_ACTION" 2>/dev/null)
 		{ [[ $(echo "$VPN_OUTPUT" | grep -c "Connection successfully activated") -eq "1" ]] && notification "VPN_Successfully_Activated" "$VPN_ACTION"; } || notification "Error_Activating_VPN" "Check your configuration for $VPN_ACTION"
@@ -180,7 +181,7 @@ function more_options() {
 	OPTIONS="${OPTIONS}~Status\n~Restart Network"
 	[[ $(nmcli -g NAME,TYPE connection | awk '/:vpn/' | sed 's/:vpn.*//g') ]] && OPTIONS="${OPTIONS}\n~VPN"
 	[[ -x "$(command -v nm-connection-editor)" ]] && OPTIONS="${OPTIONS}\n~Open Connection Editor"
-	SELECTION=$(echo -e "$OPTIONS" | rofi_cmd "$OPTIONS" "$WIDTH_FIX_STATUS" "" "mainbox {children:[listview];}")
+	SELECTION=$(echo -e "$OPTIONS" | wofi_cmd "$OPTIONS" "$WIDTH_FIX_STATUS" "" "mainbox {children:[listview];}")
 	selection_action
 }
 function selection_action() {
@@ -217,6 +218,6 @@ function selection_action() {
 	esac
 }
 function main() {
-	initialization && rofi_menu
+	initialization && wofi_menu
 }
 main
