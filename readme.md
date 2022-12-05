@@ -1,6 +1,6 @@
 # Wofi-NetWork-manager
 
-A Network manager for Wayland/wlroots Tiling Window Managers [sway/wayfire/hyperland/etc] or not.
+A Network manager using [wofi](https://hg.sr.ht/~scoopta/wofi) for [Wayland](https://gitlab.freedesktop.org/wayland/wayland)/[wlroots](https://gitlab.freedesktop.org/wlroots/wlroots) compositors like [sway](https://github.com/swaywm/sway), [wayfire](https://github.com/WayfireWM/wayfire), [hyperland](https://github.com/hyprwm/Hyprland) etc .
 Inspired from [rofi-wifi-menu](https://github.com/zbaylin/rofi-wifi-menu).
 
 ## Table of Contents
